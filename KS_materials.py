@@ -14,8 +14,8 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
     sign_of_existing_cable  = 'Существующий кабель'
     opt_c_name              = ['6XV8100 LC-LC', '6XV8100 ST-ST', '6XV8100 ST-LC', '6XV8100 LC-ST',
                                'ОВК-Б-нг(А) HF – 1Г – 0,5 кН LC-LC', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН ST-ST', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН ST-LC', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН LC-ST',
-                               'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-ST', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-ST'
-                               ]
+                               'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-ST', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-ST',
+                               'Multimod G 62.5/125-m']
 
     # Инициализация структуры для сохранения кабельной продукции
     columns = ['Наименование', 'Марка', 'Код', 'Ед. изм.', 'Количество']
@@ -48,22 +48,17 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
     if ((not df_a.empty) and (not df_vc.empty) and (not df_vm.empty)):
 
         # Очистка полученных данных и формирование базы
-
         # Убираем существующий кабель
         df_a = df_a.loc[df_a['Примечание'] != sign_of_existing_cable]
-
         # Убираем пустые строки в Номере кабеля
         df_a = df_a.loc[df_a['№ кабеля'].str.replace(' ','') != '']
-
         # Убираем непечатные символы
         df_a = df_a.apply(lambda x: x.str.replace(r'[\r\n\t]', '', regex=True) if x.dtype == "str" else x)
-
         # Проверяем значение в столбце Длина проект, м, если не цифра - заменяем на 0
         df_a['Длина проект, м'] = df_a['Длина проект, м'].astype(str)
         df_a['Длина проект, м'] = df_a['Длина проект, м'].str.replace(',', '.')
         df_a['Длина проект, м'] = pd.to_numeric(df_a['Длина проект, м'], errors = 'coerce', downcast='float')
         df_a['Длина проект, м'] = df_a['Длина проект, м'].fillna(0)
-
         # присваиваем тип столбцам таблицы
         df_a['№ кабеля'] = df_a['№ кабеля'].astype(str)
         df_a['Марка кабеля'] = df_a['Марка кабеля'].astype(str)
@@ -73,14 +68,8 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
         df_a['Куда'] = df_a['Куда'].astype(str)
         df_a['Длина факт, м'] = df_a['Длина факт, м'].astype(str)
         df_a['Примечание'] = df_a['Примечание'].astype(str)
-
         # Меняем точки в сечении кабеля на запятые
         df_a['Жильность x сечение'] = df_a['Жильность x сечение'].str.replace('.', ',')
-
-        # В столбце 'Жильность x сечение' меняем X (латинская икс), х и Х (русская хэ) на x (латинская икс)
-        df_a['Жильность x сечение'] = df_a['Жильность x сечение'].str.replace('X', 'x')
-        df_a['Жильность x сечение'] = df_a['Жильность x сечение'].str.replace('х', 'x')
-        df_a['Жильность x сечение'] = df_a['Жильность x сечение'].str.replace('Х', 'x')
 
         # обработка оптического кабеля
 
