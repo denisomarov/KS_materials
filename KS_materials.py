@@ -14,8 +14,7 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
     sign_of_existing_cable  = 'Существующий кабель'
     opt_c_name              = ['6XV8100 LC-LC', '6XV8100 ST-ST', '6XV8100 ST-LC', '6XV8100 LC-ST',
                                'ОВК-Б-нг(А) HF – 1Г – 0,5 кН LC-LC', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН ST-ST', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН ST-LC', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН LC-ST',
-                               'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-ST', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-ST',
-                               'Multimod G 62.5/125-m']
+                               'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-ST', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-ST']
 
     # Инициализация структуры для сохранения кабельной продукции
     columns = ['Наименование', 'Марка', 'Код', 'Ед. изм.', 'Количество']
@@ -93,6 +92,10 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
             df_vc_oc['Полная марка'] = df_vc_oc['Полная марка'].astype(str)
             df_vc_oc.columns = ['Наименование', 'Марка', 'Код', 'Ед. изм.']
 
+            # переведем все значения столбца Наименование в заглавные буквы
+            df_optic_sorted['Наименование'] = df_optic_sorted['Наименование'].str.upper()
+            df_vc_oc['Наименование'] = df_vc_oc['Наименование'].str.upper()
+
             df_optic_sorted = pd.merge(df_optic_sorted, df_vc_oc, on='Наименование', how='left')
             df_optic_sorted = df_optic_sorted[['Наименование', 'Марка', 'Код', 'Ед. изм.', 'Количество']]
             df_optic_sorted.fillna('', inplace=True)
@@ -121,12 +124,20 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
 
         # обработка медного кабеля
         # выделяем медный кабель
+
         df_cupper = df_a.loc[~df_a['Марка кабеля'].isin(opt_c_name)]
         df_cupper['Марка кабеля'] = df_cupper['Марка кабеля'] + ' ' + df_cupper['Жильность x сечение']
+        df_cupper['Марка кабеля'] = df_cupper['Марка кабеля'].str.replace('+SH', '')
+        df_cupper['Марка кабеля'] = df_cupper['Марка кабеля'].str.replace('+Sh', '')
+        df_cupper['Марка кабеля'] = df_cupper['Марка кабеля'].str.replace('+sh', '')
 
         # обработка медного кабеля общего (включая внутри шкафов)
         df_cupper = df_cupper[['Марка кабеля', 'Длина проект, м']]
         df_cupper.columns = ['Марка', 'Количество']
+
+        # переведем все значения столбца Марка таблицы в заглавные буквы
+        df_cupper['Марка'] = df_cupper['Марка'].str.upper()
+
         df_cupper['Количество'] = df_cupper['Количество'].astype(float)
         df_cupper = df_cupper.groupby('Марка').agg('sum')
         df_cupper.sort_index()
@@ -135,11 +146,22 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
         # оформляем таблицу медного кабеля общего (включая внутри шкафов)
         df_cupper = df_cupper[['Марка', 'Количество']]
 
+        # оформляем таблицу словаря медного кабеля
+        df_vc_oc = df_vc[['Полная марка', 'Марка', 'Наименование', 'Код', 'Ед. изм.']]
+        df_vc_oc.columns = ['Полная марка', 'Новая марка', 'Наименование', 'Код', 'Ед. изм.']
+        df_vc_oc['Полная марка'] = df_vc_oc['Полная марка'].str.rstrip()
+
+        # переведем все значения столбца Марка в заглавные буквы
+        df_vc_oc['Полная марка'] = df_vc_oc['Полная марка'].str.upper()
+
         # формируем Наименование согласно словаря Кабель
-        df_vc_oc = df_vc[['Марка', 'Наименование', 'Код', 'Ед. изм.']]
-        df_cupper = pd.merge(df_cupper, df_vc_oc, on='Марка', how='left')
-        df_cupper = df_cupper[['Наименование', 'Марка', 'Код', 'Ед. изм.', 'Количество']]
+        df_cupper = pd.merge(df_cupper, df_vc_oc, left_on='Марка', right_on='Полная марка', how='left')
+        df_cupper = df_cupper[['Наименование', 'Новая марка', 'Код', 'Ед. изм.', 'Количество']]
+        df_cupper.columns = ['Наименование', 'Марка', 'Код', 'Ед. изм.', 'Количество']
         df_cupper.fillna('', inplace=True)
+
+        # корректируем Марку кабеля, заменим X на x
+        df_cupper['Марка'] = df_cupper['Марка'].str.replace('X', "x")
 
         # заполняем полную таблицу кабеля
         if len(df_cupper) > 1:
@@ -181,6 +203,7 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
         df_cupper['Жильность'] = df_cupper['Жильность'].str.replace('.',',')
 
         # формируем Полную марку кабеля
+        df_cupper['Марка кабеля'] = df_cupper['Марка кабеля'].str.replace(' ', '')
         df_cupper['Полная марка'] = df_cupper['Марка кабеля'] + ' ' + df_cupper['Жильность']
 
         # формируем таблицу по Полной марке с указанием количества кабеля
@@ -284,7 +307,7 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
         # зададим ширину столбцов 20 единиц
         ws.column_dimensions['A'].width  = 5
         ws.column_dimensions['B'].width  = 90
-        ws.column_dimensions['C'].width  = 20
+        ws.column_dimensions['C'].width  = 25
         ws.column_dimensions['D'].width  = 20
         ws.column_dimensions['E'].width  = 20
         ws.column_dimensions['F'].width  = 20
