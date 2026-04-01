@@ -12,9 +12,16 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
     # Инииализация переменных
 
     sign_of_existing_cable  = 'Существующий кабель'
-    opt_c_name              = ['6XV8100 LC-LC', '6XV8100 ST-ST', '6XV8100 ST-LC', '6XV8100 LC-ST',
-                               'ОВК-Б-нг(А) HF – 1Г – 0,5 кН LC-LC', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН ST-ST', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН ST-LC', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН LC-ST',
-                               'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-ST', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-ST']
+    opt_c_name = ['6XV8100', '6XV8100 LC-LC', '6XV8100 ST-ST', '6XV8100 ST-LC', '6XV8100 LC-ST',
+                  'ОВК-Б-нг(А) HF – 1Г – 0,5 кН LC-LC', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН ST-ST',
+                  'ОВК-Б-нг(А) HF – 1Г – 0,5 кН ST-LC', 'ОВК-Б-нг(А) HF – 1Г – 0,5 кН LC-ST',
+                  'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-ST',
+                  'ОВК-Б-нг(А) HF – 2Г – 2,7 кН ST-LC', 'ОВК-Б-нг(А) HF – 2Г – 2,7 кН LC-ST',
+                  'ОВК-Б-нг(А)-HF-1Г LC-LC', 'ОВК-Б-нг(А)-HF-1Г ST-ST',
+                  'ОВК-Б-нг(А)-HF-1Г LC-ST', 'ОВК-Б-нг(А)-HF-1Г ST-LC',
+                  'ОВК-Б-нг(А)-HF-2Г LC-LC', 'ОВК-Б-нг(А)-HF-2Г ST-ST',
+                  'ОВК-Б-нг(А)-HF-2Г LC-ST', 'ОВК-Б-нг(А)-HF-2Г ST-LC'
+                  ]
 
     # Инициализация структуры для сохранения кабельной продукции
     columns = ['Наименование', 'Марка', 'Код', 'Ед. изм.', 'Количество']
@@ -86,7 +93,6 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
             df_optic_sorted = df_optic_sorted[['Наименование', 'Количество']]
             df_optic_sorted['Наименование'] = df_optic_sorted['Наименование'].astype(str)
 
-
             # дополняем полученную таблицу из словаря Кабель
             df_vc_oc = df_vc[['Полная марка', 'Марка', 'Код', 'Ед. изм.']]
             df_vc_oc['Полная марка'] = df_vc_oc['Полная марка'].astype(str)
@@ -110,10 +116,8 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
             df_optic_sorted.loc[df_optic_sorted['Наименование'].str.contains('– 1Г –', na=False), 'Количество'] *= 2
 
             # заносим данные по оптическому кабелю в общую таблицу кабеля
-            if len(df_optic_sorted) > 1:
+            if len(df_optic_sorted) > 0:
                 df_cable = pd.concat([df_cable, df_optic_sorted], ignore_index=True)
-
-
 
         # фиксируем формат финальной таблицы кабеля
         df_cable['Наименование'] = df_cable['Наименование'].astype(str)
