@@ -37,7 +37,7 @@ def process_data(FileName, FileName_Sheet, Voc_FileName):
 
     # считываем кабельный журнал
     df_a = pd.read_excel(FileName, FileName_Sheet, header=1)
-    df_a = df_a.iloc[1:, 1:10]
+    df_a = df_a.iloc[0:, 1:10]
     df_a.columns = ['№ кабеля', 'Марка кабеля', 'Жильность x сечение', 'Кол-во использ. Жил', 'Откуда', 'Куда',
                     'Длина проект, м', 'Длина факт, м', 'Примечание']
     df_a = df_a.dropna(how='all')
